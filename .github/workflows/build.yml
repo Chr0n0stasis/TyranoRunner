@@ -1,0 +1,50 @@
+name: Build TyranoRunner iOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      bundle_id:
+        description: 'Bundle Identifier (e.g., com.example.tyranorunner)'
+        required: true
+        default: 'com.example.tyranorunner'
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Install XcodeGen
+      run: brew install xcodegen
+
+    - name: Generate Xcode Project
+      run: xcodegen generate
+
+    - name: Update Bundle Identifier
+      run: |
+        sed -i '' 's/com.example.TyranoRunner/${{ github.event.inputs.bundle_id }}/g' TyranoRunner.xcodeproj/project.pbxproj
+
+    - name: Build Application
+      run: |
+        xcodebuild -project TyranoRunner.xcodeproj \
+          -scheme TyranoRunner \
+          -configuration Release \
+          -sdk iphoneos \
+          CONFIGURATION_BUILD_DIR=build/Release-iphoneos \
+          CODE_SIGNING_ALLOWED=NO \
+          CODE_SIGNING_REQUIRED=NO \
+          clean build
+
+    - name: Package IPA
+      run: |
+        mkdir -p Payload
+        cp -r build/Release-iphoneos/TyranoRunner.app Payload/
+        zip -r TyranoRunner.ipa Payload
+
+    - name: Upload IPA Artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: TyranoRunner-unsigned
+        path: TyranoRunner.ipa

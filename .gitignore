@@ -1,0 +1,12 @@
+# Ignore the Android dump directory
+Tyranor_v2.3.4/
+
+# Xcode
+build/
+DerivedData/
+*.xcodeproj/
+*.xcworkspace/
+xcuserdata/
+
+# OS
+.DS_Store
